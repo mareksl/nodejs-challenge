@@ -23,7 +23,7 @@ Peaky Blinders (serial name)
 |_
   Season (series title)
   |_
-    Episode (EPISODENO)
+    Episodes (EPISODENO)
   
 ### Bonus points:
 
@@ -34,11 +34,13 @@ Peaky Blinders (serial name)
 
 Endpoints:
 
-  * `/upload` Uploads the data and parses it + stores into database with unique ID
-  * `/create/:TICODE/:EPISODENO` Creates new collection in iconik based from database ID. If collection exists then throw bad request error
-  * `/update/:TICODE/:EPISODENO` Updates collection in iconik from previously defined database ID. If does not exist throw bad request error
+  * `POST /upload` Uploads the data and parses it + stores into database with unique ID
+  * `POST /create/:TICODE/:EPISODENO` Creates new collection in iconik based from database ID. If collection exists then throw bad request error
+  * `POST /update/:TICODE/:EPISODENO` Updates collection in iconik from previously defined database ID. If does not exist throw bad request error
+  * `GET /:TICODE/:EPISODENO` Gets all data from the DB about inserted colletion. If can be done, include data from iconik (call the api) 
   * `/validate` Validates any given uploaded file and discovers its properties / throws error when not valid. (part of upload endpoint also)
 
 ## Given tools
 
 In repository there is `docker-compose` file. Use services defined in it, or / and add your own :)
+By running `npm run test` you can test your connection to iconik and database as well.
