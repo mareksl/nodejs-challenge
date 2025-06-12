@@ -38,7 +38,7 @@ Endpoints:
   * `POST /create/:TICODE/:EPISODENO` Creates new collection in iconik based from database ID. If collection exists then throw bad request error
   * `POST /update/:TICODE/:EPISODENO` Updates collection in iconik from previously defined database ID. If does not exist throw bad request error
   * `GET /:TICODE/:EPISODENO` Gets all data from the DB about inserted colletion. If can be done, include data from iconik (call the api) 
-  * `/validate` Validates any given uploaded file and discovers its properties / throws error when not valid. (part of upload endpoint also)
+  * `POST /validate` Validates any given uploaded file and discovers its properties / throws error when not valid. (part of upload endpoint also)
 
 ## Given tools
 
