@@ -1,0 +1,20 @@
+{
+  "ExternalAPI": {
+    "APIVersion": "",
+    "Server": "",
+    "Source": "",
+    "Query": "SELECT * FROM [API-Packages] WHERE TiCode = '85568'",
+    "RecordCount": 1
+  },
+  "Packages": [
+    {
+      "BrandTiCode": "33504",
+      "DisplayName": "8 Out Of 10 Cats",
+      "PhaseCode": "PB",
+      "Phase": "Parent Brand",
+      "TiCode": "85568",
+      "Type": "Organisation",
+      "UpdateDate": "2024-10-01T12:08:00"
+    }
+  ]
+}

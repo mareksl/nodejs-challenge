@@ -1,0 +1,43 @@
+{
+  "ExternalAPI": {
+    "APIVersion": "",
+    "Server": "",
+    "Source": "",
+    "Query": "SELECT * FROM [MAM-Episodes] WHERE TiCode = '85568'",
+    "RecordCount": 2
+  },
+  "EpisodeData": [
+    {
+      "TICODE": "85568",
+      "VersionCode": "",
+      "EPISODENO": "227",
+      "EpActive": "True",
+      "PRODUCTNNO": "",
+      "EPISODENAM": "Episode 000227",
+      "Duration_Commercial": "01:00:00",
+      "Duration_Actual": "",
+      "UpdateDate": "2024-10-04T12:34:00",
+      "ShownOnWeb": "True",
+      "WebSynopsis": "",
+      "Tags": "",
+      "ExternalID": "",
+      "DateD": ""
+    },
+    {
+      "TICODE": "85568",
+      "VersionCode": "",
+      "EPISODENO": "228",
+      "EpActive": "True",
+      "PRODUCTNNO": "",
+      "EPISODENAM": "Episode 000228",
+      "Duration_Commercial": "01:00:00",
+      "Duration_Actual": "",
+      "UpdateDate": "2024-10-04T12:34:00",
+      "ShownOnWeb": "True",
+      "WebSynopsis": "",
+      "Tags": "",
+      "ExternalID": "",
+      "DateD": ""
+    }
+  ]
+}

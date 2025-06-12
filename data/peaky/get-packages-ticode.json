@@ -1,0 +1,29 @@
+{
+  "ExternalAPI": {
+    "APIVersion": "",
+    "Server": "",
+    "Source": "",
+    "Query": "SELECT * FROM [API-Packages] WHERE TiCode = '83098'",
+    "RecordCount": 2
+  },
+  "Packages": [
+    {
+      "BrandTiCode": "01284",
+      "DisplayName": "Peaky Blinders",
+      "PhaseCode": "WW",
+      "Phase": "Website",
+      "TiCode": "83098",
+      "Type": "Web",
+      "UpdateDate": "2021-04-13T15:30:00"
+    },
+    {
+      "BrandTiCode": "33433",
+      "DisplayName": "Peaky Blinders",
+      "PhaseCode": "PB",
+      "Phase": "Parent Brand",
+      "TiCode": "83098",
+      "Type": "Organisation",
+      "UpdateDate": "2021-05-10T11:55:00"
+    }
+  ]
+}
