@@ -1,0 +1,32 @@
+{
+  "name": "base-node-test",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A challenge application for future applicants",
+  "main": "app.js",
+  "scripts": {
+    "test": "tsx src/check-credentials.ts",
+    "start": "tsx src/app.ts"
+  },
+  "author": "Base Media",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.9.0",
+    "body-parser": "^2.2.0",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "mongodb": "^6.17.0",
+    "multer": "^2.0.1",
+    "property-expr": "^2.0.6",
+    "type-fest": "^4.41.0",
+    "uuid": "^11.1.0",
+    "yup": "^1.6.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/multer": "^1.4.13",
+    "@types/node": "^24.0.1",
+    "tsx": "^4.20.1",
+    "typescript": "^5.8.3"
+  }
+}
