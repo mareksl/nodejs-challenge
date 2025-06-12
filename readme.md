@@ -10,7 +10,6 @@ Examples in folder mimic the API responses that are sent to you on production sy
 
   * Finish endpoint for uploading files (make sure about some validation)
   * Map the data from JSON files to iconik [metadata](https://app.iconik.io/docs/apidocs.html?url=/docs/metadata/spec/) format (if no mapping is found, and one related / similar in iconik exists. Use that).
-  * Create cache mechanism storing some data in order to update collection in iconik if someone changed the requirements.
   * Create or update collection in iconik with proper structure. Be sure to check if user not messed up structure in iconik (deleting some child folder)
   
 ## The structure
@@ -44,3 +43,7 @@ Endpoints:
 
 In repository there is `docker-compose` file. Use services defined in it, or / and add your own :)
 By running `npm run test` you can test your connection to iconik and database as well.
+
+## Additional info
+
+We're requiring to have core functionality, so mapping the data to iconik. Everything else is extra.
