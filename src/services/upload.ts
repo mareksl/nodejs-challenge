@@ -48,7 +48,6 @@ export const upload = {
           uploadDate: uploadEntry.uploadDate
         }
       })
-
     } catch (error) {
       return res.status(500).json({
         error: 'Upload failed',
@@ -70,7 +69,7 @@ export const upload = {
       }
 
       // Get upload data
-      const uploadData = await uploadCollection.findOne({ id: databaseId }) as any | null
+      const uploadData = (await uploadCollection.findOne({ id: databaseId })) as any | null
       if (!uploadData) {
         return res.status(404).json({
           error: 'Upload not found',
@@ -116,7 +115,6 @@ export const upload = {
           iconikId: iconikResult.id
         }
       })
-
     } catch (error) {
       return res.status(500).json({
         error: 'Collection creation failed',
@@ -138,7 +136,7 @@ export const upload = {
       }
 
       // Get upload data
-      const uploadData = await uploadCollection.findOne({ id: databaseId }) as any | null
+      const uploadData = (await uploadCollection.findOne({ id: databaseId })) as any | null
       if (!uploadData) {
         return res.status(404).json({
           error: 'Upload not found',
@@ -179,7 +177,6 @@ export const upload = {
           iconikId: iconikResult.id
         }
       })
-
     } catch (error) {
       return res.status(500).json({
         error: 'Collection update failed',
@@ -200,7 +197,7 @@ export const upload = {
       const fileBuffer = fs.readFileSync(req.file.path)
 
       // Validate file
-      const validationResult = validation.validateFile(req.file, fileBuffer)
+      const validationResult = await validation.validateFile(req.file, fileBuffer)
 
       // Clean up
       fs.unlinkSync(req.file.path)
@@ -214,7 +211,6 @@ export const upload = {
           validatedAt: new Date()
         }
       })
-
     } catch (error) {
       if (req.file) {
         try {
