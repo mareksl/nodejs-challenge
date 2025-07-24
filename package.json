@@ -5,8 +5,9 @@
   "description": "A challenge application for future applicants",
   "main": "app.js",
   "scripts": {
-    "test": "tsx src/check-credentials.ts",
+    "test": "MONGO_URI=mongodb://localhost:27017/?directConnection=true tsx src/check-credentials.ts",
     "start": "tsx src/app.ts",
+    "dev": "tsx --watch src/app.ts",
     "typecheck": "tsc --noEmit"
   },
   "author": "Base Media",
