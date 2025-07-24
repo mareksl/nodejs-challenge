@@ -6,7 +6,8 @@
   "main": "app.js",
   "scripts": {
     "test": "tsx src/check-credentials.ts",
-    "start": "tsx src/app.ts"
+    "start": "tsx src/app.ts",
+    "typecheck": "tsc --noEmit"
   },
   "author": "Base Media",
   "license": "ISC",
