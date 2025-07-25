@@ -64,7 +64,8 @@ export const iconik = {
           {
             name: 'ancestor_collections',
             value_in: [ICONIK_COLLECTION_ID]
-          }
+          },
+          { name: 'status', value: 'ACTIVE' }
         ]
       }
     }
@@ -89,7 +90,8 @@ async function getBrandCollection(brandTiCode: string): Promise<IconikCollection
         {
           name: 'parent_id',
           value: ICONIK_COLLECTION_ID
-        }
+        },
+        { name: 'status', value: 'ACTIVE' }
       ]
     }
   }
@@ -123,7 +125,8 @@ async function getSeasonCollection(brandTiCode: string, ticode: string): Promise
         {
           name: 'parent_id',
           value: brandTiCode
-        }
+        },
+        { name: 'status', value: 'ACTIVE' }
       ]
     }
   }

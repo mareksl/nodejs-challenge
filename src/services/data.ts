@@ -39,15 +39,12 @@ export function getUploadData(id: string, tiCode: string, episodeNo: string) {
           localField: 'parsedData.EpisodeData.TICODE',
           foreignField: 'parsedData.Packages.TiCode',
           pipeline: [
+            { $unwind: '$parsedData.Packages' },
             { $match: { 'parsedData.Packages.Phase': 'Parent Brand' } },
             {
               $project: {
-                DisplayName: {
-                  $arrayElemAt: ['$parsedData.Packages.DisplayName', 0]
-                },
-                BrandTiCode: {
-                  $arrayElemAt: ['$parsedData.Packages.BrandTiCode', 0]
-                }
+                DisplayName: '$parsedData.Packages.DisplayName',
+                BrandTiCode: '$parsedData.Packages.BrandTiCode'
               }
             }
           ],

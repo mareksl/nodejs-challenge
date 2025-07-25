@@ -69,7 +69,6 @@ export const upload = {
       // Get upload data
       const uploadData = (await getUploadData(databaseId, TICODE, EPISODENO))[0]
 
-      console.log({ uploadData })
       if (!uploadData) {
         return res.status(404).json({
           error: 'Upload not found',
@@ -110,7 +109,7 @@ export const upload = {
       // Create collection
       const iconikResult = await iconik.createCollection(TICODE, EPISODENO, uploadData)
 
-      // Update database
+      // // Update database
       // await uploadCollection.updateOne(
       //   { id: databaseId },
       //   {

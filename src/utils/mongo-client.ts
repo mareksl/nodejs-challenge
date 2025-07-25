@@ -1,11 +1,11 @@
-import { MongoClient } from 'mongodb'
+import { Db, MongoClient } from 'mongodb'
 import { MONGO_URI } from '../config/env-vars'
 import { UploadEntry } from '../schema/upload'
 
 console.log('🔌 Attempting to connect to MongoDB...')
 console.log(`📍 MongoDB URI: ${MONGO_URI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')}`) // Hide credentials in logs
 
-let mongoDb, db
+let mongoDb: MongoClient, db: Db
 
 try {
   console.log('⏳ Connecting to MongoDB...')
