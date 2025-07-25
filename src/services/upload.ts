@@ -110,22 +110,47 @@ export const upload = {
       const iconikResult = await iconik.createCollection(TICODE, EPISODENO, uploadData)
 
       // Update database
-      await uploadCollection.updateOne(
+
+      const date = new Date()
+
+      const { modifiedCount } = await uploadCollection.updateOne(
         { id: databaseId },
         {
-          $push: {
-            iconikCollection: {
-              ticode: TICODE,
-              episodeNo: EPISODENO,
-              iconikId: iconikResult.id,
-              createdDate: new Date()
-            }
-          },
           $set: {
-            lastUpdated: new Date()
+            'iconikCollection.$[entry].iconikId': iconikResult.id,
+            'iconikCollection.$[entry].createdDate': date
           }
-        }
+        },
+        { arrayFilters: [{ 'entry.episodeNo': EPISODENO }] }
       )
+
+      if (modifiedCount === 0) {
+        await uploadCollection.updateOne(
+          { id: databaseId },
+          {
+            $push: {
+              iconikCollection: {
+                ticode: TICODE,
+                episodeNo: EPISODENO,
+                iconikId: iconikResult.id,
+                createdDate: date
+              }
+            },
+            $set: {
+              lastUpdated: date
+            }
+          }
+        )
+      } else {
+        await uploadCollection.updateOne(
+          { id: databaseId },
+          {
+            $set: {
+              lastUpdated: date
+            }
+          }
+        )
+      }
 
       return res.status(201).json({
         success: true,

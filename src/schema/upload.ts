@@ -23,7 +23,8 @@ export const uploadSchema = object({
       ticode: string().required(),
       episodeNo: string().required(),
       iconikId: string().required(),
-      createdDate: date().required()
+      createdDate: date().required(),
+      lastUpdated: date().optional()
     })
   ),
   lastUpdated: date().optional()
