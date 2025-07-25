@@ -29,7 +29,7 @@ export const upload = {
         fileProperties: properties,
         parsedData,
         status: 'uploaded',
-        iconikCollection: null
+        iconikCollection: []
       }
 
       await uploadCollection.insertOne(uploadEntry)
@@ -109,21 +109,23 @@ export const upload = {
       // Create collection
       const iconikResult = await iconik.createCollection(TICODE, EPISODENO, uploadData)
 
-      // // Update database
-      // await uploadCollection.updateOne(
-      //   { id: databaseId },
-      //   {
-      //     $set: {
-      //       iconikCollection: {
-      //         ticode: TICODE,
-      //         episodeNo: EPISODENO,
-      //         iconikId: iconikResult.id,
-      //         createdDate: new Date()
-      //       },
-      //       lastUpdated: new Date()
-      //     }
-      //   }
-      // )
+      // Update database
+      await uploadCollection.updateOne(
+        { id: databaseId },
+        {
+          $push: {
+            iconikCollection: {
+              ticode: TICODE,
+              episodeNo: EPISODENO,
+              iconikId: iconikResult.id,
+              createdDate: new Date()
+            }
+          },
+          $set: {
+            lastUpdated: new Date()
+          }
+        }
+      )
 
       return res.status(201).json({
         success: true,

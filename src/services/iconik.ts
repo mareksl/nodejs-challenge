@@ -9,7 +9,16 @@ interface IconikCollection {
 }
 
 export const iconik = {
-  async createCollection(ticode: string, episodeNo: string, data: UploadData): Promise<any> {
+  async createCollection(
+    ticode: string,
+    episodeNo: string,
+    data: UploadData
+  ): Promise<{
+    id: string
+    status: string
+    ticode: string
+    episodeNo: string
+  }> {
     console.log(`Creating collection for ${ticode}/${episodeNo}`)
 
     const brandCollection = await getBrandCollection(data.BrandTiCode)

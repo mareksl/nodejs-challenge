@@ -1,4 +1,4 @@
-import { boolean, date, InferType, number, object, string } from 'yup'
+import { array, boolean, date, InferType, number, object, string } from 'yup'
 import { packagesSchema } from './packages'
 import { titleDataSchema } from './title-data'
 import { episodesSchema } from './episodes'
@@ -18,12 +18,15 @@ export const uploadSchema = object({
   }).required(),
   parsedData: fileSchema,
   status: string().required(),
-  iconikCollection: object({
-    ticode: string().required(),
-    episodeNo: string().required(),
-    iconikId: string().required(),
-    createdDate: date().required()
-  }).nullable()
+  iconikCollection: array(
+    object({
+      ticode: string().required(),
+      episodeNo: string().required(),
+      iconikId: string().required(),
+      createdDate: date().required()
+    })
+  ),
+  lastUpdated: date().optional()
 })
 
 export type UploadEntry = InferType<typeof uploadSchema>
