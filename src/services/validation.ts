@@ -1,8 +1,4 @@
-import { episodesSchema } from '../schema/episodes'
-import { packagesSchema } from '../schema/packages'
-import { titleDataSchema } from '../schema/title-data'
-
-const fileSchema = packagesSchema.concat(titleDataSchema).concat(episodesSchema).json()
+import { fileSchema } from '../schema/upload'
 
 export const validation = {
   async validateFile(file: Express.Multer.File, buffer: Buffer) {
@@ -12,7 +8,7 @@ export const validation = {
       throw new Error('Invalid file type. Only JSON files are allowed.')
     }
 
-    const parsedData = await fileSchema.validate(buffer.toString('utf-8'))
+    const parsedData = await fileSchema.json().validate(buffer.toString('utf-8'))
 
     return {
       properties: {
