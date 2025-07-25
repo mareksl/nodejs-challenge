@@ -1,5 +1,6 @@
 import { MongoClient } from 'mongodb'
-import { MONGO_URI } from 'src/config/env-vars'
+import { MONGO_URI } from '../config/env-vars'
+import { UploadEntry } from '../schema/upload'
 
 console.log('🔌 Attempting to connect to MongoDB...')
 console.log(`📍 MongoDB URI: ${MONGO_URI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')}`) // Hide credentials in logs
@@ -13,7 +14,6 @@ try {
 
   db = mongoDb.db('base-nodejs-test')
   console.log('📂 Connected to database: base-nodejs-test')
-
 } catch (error) {
   console.error('❌ Failed to connect to MongoDB:', error.message)
   console.error('🔍 Full error details:', error)
@@ -33,6 +33,6 @@ export { mongoDb, db }
 
 // NOTE: can be deleted, inserted as example
 export const assetCollection = db.collection('assets')
-export const uploadCollection = db.collection('uploads')
+export const uploadCollection = db.collection<UploadEntry>('uploads')
 
-console.log('🗄️  Collections initialized: assets, uploads');
+console.log('🗄️  Collections initialized: assets, uploads')

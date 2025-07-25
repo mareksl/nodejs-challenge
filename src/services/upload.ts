@@ -1,9 +1,11 @@
 import fs from 'fs'
 import { Request, Response } from 'express'
 import { v4 as uuidv4 } from 'uuid'
-import { iconik } from './iconik.js'
-import { validation } from './validation.js'
+import { iconik } from './iconik'
+import { validation } from './validation'
 import { uploadCollection } from '../utils/mongo-client'
+import { UploadEntry } from '../schema/upload'
+import { getUploadData } from './data'
 
 export const upload = {
   async handleUpload(req: Request, res: Response): Promise<Response> {
@@ -20,7 +22,7 @@ export const upload = {
       const { parsedData, properties } = await validation.validateFile(req.file, fileBuffer)
 
       // Save to database
-      const uploadEntry = {
+      const uploadEntry: UploadEntry = {
         id: uuidv4(),
         filename: req.file.originalname,
         uploadDate: new Date(),
@@ -65,11 +67,34 @@ export const upload = {
       }
 
       // Get upload data
-      const uploadData = (await uploadCollection.findOne({ id: databaseId })) as any | null
+      const uploadData = (await getUploadData(databaseId, TICODE, EPISODENO))[0]
+
+      console.log({ uploadData })
       if (!uploadData) {
         return res.status(404).json({
           error: 'Upload not found',
-          message: `No upload found for ID: ${databaseId}`
+          message: `No upload found for ID: ${databaseId}, TICODE: ${TICODE}, EPISODENO: ${EPISODENO}`
+        })
+      }
+
+      if (!uploadData.TICODE || !uploadData.EPISODENO) {
+        return res.status(400).json({
+          error: 'Invalid upload data',
+          message: `Upload data for ID: ${databaseId} is missing TICODE or EPISODENO`
+        })
+      }
+
+      if (!uploadData.SeasonName) {
+        return res.status(400).json({
+          error: 'Invalid upload data',
+          message: `Upload data for ID: ${databaseId} is missing SeasonName. Please upload titledata first.`
+        })
+      }
+
+      if (!uploadData.SeriesName || !uploadData.BrandTiCode) {
+        return res.status(400).json({
+          error: 'Invalid upload data',
+          message: `Upload data for ID: ${databaseId} is missing SeriesName or BrandTiCode. Please upload packages first.`
         })
       }
 
@@ -86,20 +111,20 @@ export const upload = {
       const iconikResult = await iconik.createCollection(TICODE, EPISODENO, uploadData)
 
       // Update database
-      await uploadCollection.updateOne(
-        { id: databaseId },
-        {
-          $set: {
-            iconikCollection: {
-              ticode: TICODE,
-              episodeNo: EPISODENO,
-              iconikId: iconikResult.id,
-              createdDate: new Date()
-            },
-            lastUpdated: new Date()
-          }
-        }
-      )
+      // await uploadCollection.updateOne(
+      //   { id: databaseId },
+      //   {
+      //     $set: {
+      //       iconikCollection: {
+      //         ticode: TICODE,
+      //         episodeNo: EPISODENO,
+      //         iconikId: iconikResult.id,
+      //         createdDate: new Date()
+      //       },
+      //       lastUpdated: new Date()
+      //     }
+      //   }
+      // )
 
       return res.status(201).json({
         success: true,
