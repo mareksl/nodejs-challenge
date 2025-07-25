@@ -17,18 +17,14 @@ export const upload = {
 
       const fileBuffer = fs.readFileSync(req.file.path)
 
-      // Basic validation stub
-      const fileProperties = validation.validateFile(req.file, fileBuffer)
-
-      // Parse file content - TODO: Implement proper parsing
-      const parsedData = { content: fileBuffer.toString() }
+      const { parsedData, properties } = await validation.validateFile(req.file, fileBuffer)
 
       // Save to database
-      const uploadEntry: any = {
+      const uploadEntry = {
         id: uuidv4(),
         filename: req.file.originalname,
         uploadDate: new Date(),
-        fileProperties,
+        fileProperties: properties,
         parsedData,
         status: 'uploaded',
         iconikCollection: null
@@ -48,7 +44,6 @@ export const upload = {
           uploadDate: uploadEntry.uploadDate
         }
       })
-
     } catch (error) {
       return res.status(500).json({
         error: 'Upload failed',
@@ -70,7 +65,7 @@ export const upload = {
       }
 
       // Get upload data
-      const uploadData = await uploadCollection.findOne({ id: databaseId }) as any | null
+      const uploadData = (await uploadCollection.findOne({ id: databaseId })) as any | null
       if (!uploadData) {
         return res.status(404).json({
           error: 'Upload not found',
@@ -116,7 +111,6 @@ export const upload = {
           iconikId: iconikResult.id
         }
       })
-
     } catch (error) {
       return res.status(500).json({
         error: 'Collection creation failed',
@@ -138,7 +132,7 @@ export const upload = {
       }
 
       // Get upload data
-      const uploadData = await uploadCollection.findOne({ id: databaseId }) as any | null
+      const uploadData = (await uploadCollection.findOne({ id: databaseId })) as any | null
       if (!uploadData) {
         return res.status(404).json({
           error: 'Upload not found',
@@ -179,7 +173,6 @@ export const upload = {
           iconikId: iconikResult.id
         }
       })
-
     } catch (error) {
       return res.status(500).json({
         error: 'Collection update failed',
@@ -200,7 +193,7 @@ export const upload = {
       const fileBuffer = fs.readFileSync(req.file.path)
 
       // Validate file
-      const validationResult = validation.validateFile(req.file, fileBuffer)
+      const { properties } = await validation.validateFile(req.file, fileBuffer)
 
       // Clean up
       fs.unlinkSync(req.file.path)
@@ -209,12 +202,11 @@ export const upload = {
         success: true,
         message: 'File validation completed',
         data: {
-          isValid: validationResult.isValid,
-          properties: validationResult,
+          isValid: properties.isValid,
+          properties,
           validatedAt: new Date()
         }
       })
-
     } catch (error) {
       if (req.file) {
         try {

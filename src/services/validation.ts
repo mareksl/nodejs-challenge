@@ -1,18 +1,28 @@
+import { episodesSchema } from '../schema/episodes'
+import { packagesSchema } from '../schema/packages'
+import { titleDataSchema } from '../schema/title-data'
+
+const fileSchema = packagesSchema.concat(titleDataSchema).concat(episodesSchema).json()
+
 export const validation = {
-  validateFile(file: Express.Multer.File, buffer: Buffer): any {
-    // TODO: Developer implements actual validation logic
+  async validateFile(file: Express.Multer.File, buffer: Buffer) {
     console.log(`Validating file: ${file.originalname}`)
 
-    // Stub implementation - replace with actual validation
+    if (file.mimetype !== 'application/json') {
+      throw new Error('Invalid file type. Only JSON files are allowed.')
+    }
+
+    const parsedData = await fileSchema.validate(buffer.toString('utf-8'))
+
     return {
-      filename: file.originalname,
-      size: buffer.length,
-      type: file.mimetype,
-      encoding: file.encoding,
-      isValid: true, // TODO: Implement actual validation
       properties: {
-        // TODO: Add discovered file properties
-      }
+        filename: file.originalname,
+        size: buffer.length,
+        type: file.mimetype,
+        encoding: file.encoding,
+        isValid: true
+      },
+      parsedData
     }
   }
 }
