@@ -56,7 +56,7 @@ export const upload = {
 
   async createCollection(req: Request, res: Response): Promise<Response> {
     try {
-      const { TICODE, EPISODENO } = req.params
+      const { TICODE: tiCode, EPISODENO: episodeNo } = req.params
       const { databaseId } = req.body
 
       if (!databaseId) {
@@ -67,12 +67,12 @@ export const upload = {
       }
 
       // Get upload data
-      const uploadData = (await getUploadData(databaseId, TICODE, EPISODENO))[0]
+      const uploadData = (await getUploadData(databaseId, tiCode, episodeNo))[0]
 
       if (!uploadData) {
         return res.status(404).json({
           error: 'Upload not found',
-          message: `No upload found for ID: ${databaseId}, TICODE: ${TICODE}, EPISODENO: ${EPISODENO}`
+          message: `No upload found for ID: ${databaseId}, TICODE: ${tiCode}, EPISODENO: ${episodeNo}`
         })
       }
 
@@ -98,21 +98,19 @@ export const upload = {
       }
 
       // Check if collection exists
-      const exists = await iconik.collectionExists(TICODE, EPISODENO)
+      const exists = await iconik.collectionExists(tiCode, episodeNo)
       if (exists) {
         return res.status(400).json({
           error: 'Collection already exists',
-          message: `Collection for ${TICODE}/${EPISODENO} already exists`
+          message: `Collection for ${tiCode}/${episodeNo} already exists`
         })
       }
 
       // Create collection
-      const iconikResult = await iconik.createCollection(TICODE, EPISODENO, uploadData)
+      const iconikResult = await iconik.createCollection(tiCode, episodeNo, uploadData)
 
       // Update database
-
       const date = new Date()
-
       const { modifiedCount } = await uploadCollection.updateOne(
         { id: databaseId },
         {
@@ -121,7 +119,7 @@ export const upload = {
             'iconikCollection.$[entry].createdDate': date
           }
         },
-        { arrayFilters: [{ 'entry.episodeNo': EPISODENO }] }
+        { arrayFilters: [{ 'entry.episodeNo': episodeNo }] }
       )
 
       if (modifiedCount === 0) {
@@ -130,8 +128,8 @@ export const upload = {
           {
             $push: {
               iconikCollection: {
-                ticode: TICODE,
-                episodeNo: EPISODENO,
+                ticode: tiCode,
+                episodeNo,
                 iconikId: iconikResult.id,
                 createdDate: date
               }
@@ -156,8 +154,8 @@ export const upload = {
         success: true,
         message: 'Collection created successfully',
         data: {
-          ticode: TICODE,
-          episodeNo: EPISODENO,
+          tiCode,
+          episodeNo,
           databaseId,
           iconikId: iconikResult.id
         }
@@ -172,7 +170,7 @@ export const upload = {
 
   async updateCollection(req: Request, res: Response): Promise<Response> {
     try {
-      const { TICODE, EPISODENO } = req.params
+      const { TICODE: tiCode, EPISODENO: episodeNo } = req.params
       const { databaseId } = req.body
 
       if (!databaseId) {
@@ -183,14 +181,12 @@ export const upload = {
       }
 
       // Get upload data
-      const uploadData = (await getUploadData(databaseId, TICODE, EPISODENO))[0]
-
-      console.log(uploadData)
+      const uploadData = (await getUploadData(databaseId, tiCode, episodeNo))[0]
 
       if (!uploadData) {
         return res.status(404).json({
           error: 'Upload not found',
-          message: `No upload found for ID: ${databaseId}, TICODE: ${TICODE}, EPISODENO: ${EPISODENO}`
+          message: `No upload found for ID: ${databaseId}, TICODE: ${tiCode}, EPISODENO: ${episodeNo}`
         })
       }
 
@@ -215,34 +211,36 @@ export const upload = {
         })
       }
 
-      const collection = await iconik.getCollection(TICODE, EPISODENO)
+      const collection = await iconik.getCollection(tiCode, episodeNo)
       if (!collection) {
         return res.status(400).json({
           error: 'Collection does not exist',
-          message: `Collection for ${TICODE}/${EPISODENO} not found. Use /create first.`
+          message: `Collection for ${tiCode}/${episodeNo} not found. Use /create first.`
         })
       }
 
       // Update collection
-      const iconikResult = await iconik.updateCollection(TICODE, EPISODENO, collection.id, uploadData)
+      const iconikResult = await iconik.updateCollection(tiCode, episodeNo, collection.id, uploadData)
 
-      // // Update database
-      // await uploadCollection.updateOne(
-      //   { id: databaseId },
-      //   {
-      //     $set: {
-      //       'iconikCollection.lastUpdated': new Date(),
-      //       lastUpdated: new Date()
-      //     }
-      //   }
-      // )
+      const date = new Date()
+      await uploadCollection.updateOne(
+        { id: databaseId },
+        {
+          $set: {
+            'iconikCollection.$[entry].iconikId': iconikResult.id,
+            'iconikCollection.$[entry].lastUpdated': date,
+            lastUpdated: date
+          }
+        },
+        { arrayFilters: [{ 'entry.episodeNo': episodeNo }] }
+      )
 
       return res.status(200).json({
         success: true,
         message: 'Collection updated successfully',
         data: {
-          ticode: TICODE,
-          episodeNo: EPISODENO,
+          tiCode,
+          episodeNo,
           databaseId,
           iconikId: iconikResult.id
         }
