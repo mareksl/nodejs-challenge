@@ -8,51 +8,72 @@ interface IconikCollection {
   id: string
 }
 
+interface IconikCollectionResponse {
+  id: string
+  status: string
+  ticode: string
+  episodeNo: string
+}
+
+interface IconicMetadata {
+  description: string
+}
+
+interface IconicMetadataResponse {
+  metadata_values: {
+    description: { field_values: [{ value: string }] }
+  }
+  object_id: string
+}
+
 export const iconik = {
-  async createCollection(
-    ticode: string,
-    episodeNo: string,
-    data: UploadData
-  ): Promise<{
-    id: string
-    status: string
-    ticode: string
-    episodeNo: string
-  }> {
+  async createCollection(ticode: string, episodeNo: string, data: UploadData): Promise<IconikCollectionResponse> {
     console.log(`Creating collection for ${ticode}/${episodeNo}`)
 
-    const brandCollection = await getBrandCollection(data.BrandTiCode)
+    const brandCollection = await getBrandCollection(data.brandTiCode)
 
     const brandId = brandCollection
       ? brandCollection.id
-      : (await createBrandCollection(data.BrandTiCode, data.SeriesName)).id
+      : (await createBrandCollection(data.brandTiCode, data.seriesName)).id
 
     const seasonCollection = await getSeasonCollection(brandId, ticode)
 
     const seasonId = seasonCollection
       ? seasonCollection.id
-      : (await createSeasonCollection(brandId, ticode, data.SeasonName)).id
+      : (await createSeasonCollection(brandId, ticode, data.seasonName)).id
 
-    const response = await iconikClient.post<IconikCollection>('/assets/v1/collections', {
+    const iconikCollectionResponse = await iconikClient.post<IconikCollection>('/assets/v1/collections', {
       external_id: `${ticode}_${episodeNo}`,
       parent_id: seasonId,
-      title: data.EPISODENO
+      title: data.episodeNo
+    })
+
+    await updateMetadata(iconikCollectionResponse.data.id, {
+      description: data.episodeName
     })
 
     return {
-      id: response.data.id,
+      id: iconikCollectionResponse.data.id,
       status: 'created',
       ticode,
       episodeNo
     }
   },
 
-  async updateCollection(ticode: string, episodeNo: string, data: any): Promise<any> {
-    // TODO: Implement actual iconik API call
-    // Example: const response = await iconikClient.put(`/collections/${collectionId}`, { ... })
+  async updateCollection(
+    ticode: string,
+    episodeNo: string,
+    collectionId: string,
+    data: UploadData
+  ): Promise<IconikCollectionResponse> {
     console.log(`Updating collection for ${ticode}/${episodeNo}`)
+
+    const response = await updateMetadata(collectionId, {
+      description: data.episodeName
+    })
+
     return {
-      id: `iconik_collection_${Date.now()}`,
+      id: response.object_id,
       status: 'updated',
       ticode,
       episodeNo
@@ -62,30 +83,41 @@ export const iconik = {
   async collectionExists(ticode: string, episodeNo: string): Promise<boolean> {
     console.log(`Checking if collection exists for ${ticode}/${episodeNo}`)
 
-    const searchQuery = `${ticode}_${episodeNo}`
-    const requestBody = {
-      doc_types: ['collections'],
-      query: searchQuery,
-      search_fields: ['external_id'],
-      filter: {
-        operator: 'AND',
-        terms: [
-          {
-            name: 'ancestor_collections',
-            value_in: [ICONIK_COLLECTION_ID]
-          },
-          { name: 'status', value: 'ACTIVE' }
-        ]
-      }
-    }
+    const collection = await getCollection(ticode, episodeNo)
+    return !!collection
+  },
 
-    const response = await iconikClient.post<{
-      total: number
-      objects: IconikCollection[]
-    }>(`search/v1/search`, requestBody)
+  async getCollection(ticode: string, episodeNo: string): Promise<IconikCollection | null> {
+    console.log(`Fetching collection for ${ticode}/${episodeNo}`)
 
-    return response.data.total > 0
+    return getCollection(ticode, episodeNo)
   }
+}
+
+async function getCollection(ticode: string, episodeNo: string): Promise<IconikCollection | null> {
+  const searchQuery = `${ticode}_${episodeNo}`
+  const requestBody = {
+    doc_types: ['collections'],
+    query: searchQuery,
+    search_fields: ['external_id'],
+    filter: {
+      operator: 'AND',
+      terms: [
+        {
+          name: 'ancestor_collections',
+          value_in: [ICONIK_COLLECTION_ID]
+        },
+        { name: 'status', value: 'ACTIVE' }
+      ]
+    }
+  }
+
+  const response = await iconikClient.post<{
+    total: number
+    objects: IconikCollection[]
+  }>(`search/v1/search`, requestBody)
+
+  return response.data.objects[0] || null
 }
 
 async function getBrandCollection(brandTiCode: string): Promise<IconikCollection | null> {
@@ -154,6 +186,20 @@ async function createSeasonCollection(brandId: string, ticode: string, seasonNam
     parent_id: brandId,
     title: seasonName
   })
+
+  return response.data
+}
+
+async function updateMetadata(collectionId: string, metadata: IconicMetadata): Promise<IconicMetadataResponse> {
+  const response = await iconikClient.put<IconicMetadataResponse>(
+    // TODO: Get actual view id from api
+    `/metadata/v1/collections/${collectionId}/views/2561e1ae-009d-11ef-8396-16951a4d6970/`,
+    {
+      metadata_values: {
+        description: { field_values: [{ value: metadata.description }] }
+      }
+    }
+  )
 
   return response.data
 }

@@ -56,7 +56,7 @@ export const upload = {
 
   async createCollection(req: Request, res: Response): Promise<Response> {
     try {
-      const { TICODE, EPISODENO } = req.params
+      const { TICODE: tiCode, EPISODENO: episodeNo } = req.params
       const { databaseId } = req.body
 
       if (!databaseId) {
@@ -67,30 +67,30 @@ export const upload = {
       }
 
       // Get upload data
-      const uploadData = (await getUploadData(databaseId, TICODE, EPISODENO))[0]
+      const uploadData = (await getUploadData(databaseId, tiCode, episodeNo))[0]
 
       if (!uploadData) {
         return res.status(404).json({
           error: 'Upload not found',
-          message: `No upload found for ID: ${databaseId}, TICODE: ${TICODE}, EPISODENO: ${EPISODENO}`
+          message: `No upload found for ID: ${databaseId}, TICODE: ${tiCode}, EPISODENO: ${episodeNo}`
         })
       }
 
-      if (!uploadData.TICODE || !uploadData.EPISODENO) {
+      if (!uploadData.tiCode || !uploadData.episodeNo) {
         return res.status(400).json({
           error: 'Invalid upload data',
           message: `Upload data for ID: ${databaseId} is missing TICODE or EPISODENO`
         })
       }
 
-      if (!uploadData.SeasonName) {
+      if (!uploadData.seasonName) {
         return res.status(400).json({
           error: 'Invalid upload data',
           message: `Upload data for ID: ${databaseId} is missing SeasonName. Please upload titledata first.`
         })
       }
 
-      if (!uploadData.SeriesName || !uploadData.BrandTiCode) {
+      if (!uploadData.seriesName || !uploadData.brandTiCode) {
         return res.status(400).json({
           error: 'Invalid upload data',
           message: `Upload data for ID: ${databaseId} is missing SeriesName or BrandTiCode. Please upload packages first.`
@@ -98,41 +98,64 @@ export const upload = {
       }
 
       // Check if collection exists
-      const exists = await iconik.collectionExists(TICODE, EPISODENO)
+      const exists = await iconik.collectionExists(tiCode, episodeNo)
       if (exists) {
         return res.status(400).json({
           error: 'Collection already exists',
-          message: `Collection for ${TICODE}/${EPISODENO} already exists`
+          message: `Collection for ${tiCode}/${episodeNo} already exists`
         })
       }
 
       // Create collection
-      const iconikResult = await iconik.createCollection(TICODE, EPISODENO, uploadData)
+      const iconikResult = await iconik.createCollection(tiCode, episodeNo, uploadData)
 
       // Update database
-      await uploadCollection.updateOne(
+      const date = new Date()
+      const { modifiedCount } = await uploadCollection.updateOne(
         { id: databaseId },
         {
-          $push: {
-            iconikCollection: {
-              ticode: TICODE,
-              episodeNo: EPISODENO,
-              iconikId: iconikResult.id,
-              createdDate: new Date()
-            }
-          },
           $set: {
-            lastUpdated: new Date()
+            'iconikCollection.$[entry].iconikId': iconikResult.id,
+            'iconikCollection.$[entry].createdDate': date
           }
-        }
+        },
+        { arrayFilters: [{ 'entry.episodeNo': episodeNo }] }
       )
+
+      if (modifiedCount === 0) {
+        await uploadCollection.updateOne(
+          { id: databaseId },
+          {
+            $push: {
+              iconikCollection: {
+                ticode: tiCode,
+                episodeNo,
+                iconikId: iconikResult.id,
+                createdDate: date
+              }
+            },
+            $set: {
+              lastUpdated: date
+            }
+          }
+        )
+      } else {
+        await uploadCollection.updateOne(
+          { id: databaseId },
+          {
+            $set: {
+              lastUpdated: date
+            }
+          }
+        )
+      }
 
       return res.status(201).json({
         success: true,
         message: 'Collection created successfully',
         data: {
-          ticode: TICODE,
-          episodeNo: EPISODENO,
+          tiCode,
+          episodeNo,
           databaseId,
           iconikId: iconikResult.id
         }
@@ -147,7 +170,7 @@ export const upload = {
 
   async updateCollection(req: Request, res: Response): Promise<Response> {
     try {
-      const { TICODE, EPISODENO } = req.params
+      const { TICODE: tiCode, EPISODENO: episodeNo } = req.params
       const { databaseId } = req.body
 
       if (!databaseId) {
@@ -158,43 +181,66 @@ export const upload = {
       }
 
       // Get upload data
-      const uploadData = (await uploadCollection.findOne({ id: databaseId })) as any | null
+      const uploadData = (await getUploadData(databaseId, tiCode, episodeNo))[0]
+
       if (!uploadData) {
         return res.status(404).json({
           error: 'Upload not found',
-          message: `No upload found for ID: ${databaseId}`
+          message: `No upload found for ID: ${databaseId}, TICODE: ${tiCode}, EPISODENO: ${episodeNo}`
         })
       }
 
-      // Check if collection exists
-      const exists = await iconik.collectionExists(TICODE, EPISODENO)
-      if (!exists) {
+      if (!uploadData.tiCode || !uploadData.episodeNo) {
+        return res.status(400).json({
+          error: 'Invalid upload data',
+          message: `Upload data for ID: ${databaseId} is missing TICODE or EPISODENO`
+        })
+      }
+
+      if (!uploadData.seasonName) {
+        return res.status(400).json({
+          error: 'Invalid upload data',
+          message: `Upload data for ID: ${databaseId} is missing SeasonName. Please upload titledata first.`
+        })
+      }
+
+      if (!uploadData.seriesName || !uploadData.brandTiCode) {
+        return res.status(400).json({
+          error: 'Invalid upload data',
+          message: `Upload data for ID: ${databaseId} is missing SeriesName or BrandTiCode. Please upload packages first.`
+        })
+      }
+
+      const collection = await iconik.getCollection(tiCode, episodeNo)
+      if (!collection) {
         return res.status(400).json({
           error: 'Collection does not exist',
-          message: `Collection for ${TICODE}/${EPISODENO} not found. Use /create first.`
+          message: `Collection for ${tiCode}/${episodeNo} not found. Use /create first.`
         })
       }
 
       // Update collection
-      const iconikResult = await iconik.updateCollection(TICODE, EPISODENO, uploadData)
+      const iconikResult = await iconik.updateCollection(tiCode, episodeNo, collection.id, uploadData)
 
-      // Update database
+      const date = new Date()
       await uploadCollection.updateOne(
         { id: databaseId },
         {
           $set: {
-            'iconikCollection.lastUpdated': new Date(),
-            lastUpdated: new Date()
+            'iconikCollection.$[entry].iconikId': iconikResult.id,
+            'iconikCollection.$[entry].lastUpdated': date,
+            lastUpdated: date
           }
-        }
+        },
+        { arrayFilters: [{ 'entry.episodeNo': episodeNo }] }
       )
 
       return res.status(200).json({
         success: true,
         message: 'Collection updated successfully',
         data: {
-          ticode: TICODE,
-          episodeNo: EPISODENO,
+          tiCode,
+          episodeNo,
           databaseId,
           iconikId: iconikResult.id
         }

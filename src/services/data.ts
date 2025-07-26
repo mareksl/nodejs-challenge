@@ -1,11 +1,12 @@
 import { uploadCollection } from '../utils/mongo-client'
 
 export interface UploadData {
-  TICODE: string
-  EPISODENO: string
-  SeasonName: string
-  SeriesName: string
-  BrandTiCode: string
+  tiCode: string
+  episodeNo: string
+  episodeName: string
+  seasonName: string
+  seriesName: string
+  brandTiCode: string
 }
 
 export function getUploadData(id: string, tiCode: string, episodeNo: string) {
@@ -64,15 +65,16 @@ export function getUploadData(id: string, tiCode: string, episodeNo: string) {
       },
       {
         $project: {
-          TICODE: '$parsedData.EpisodeData.TICODE',
-          EPISODENO: '$parsedData.EpisodeData.EPISODENO',
-          SeasonName: {
+          tiCode: '$parsedData.EpisodeData.TICODE',
+          episodeNo: '$parsedData.EpisodeData.EPISODENO',
+          episodeName: '$parsedData.EpisodeData.EPISODENAM',
+          seasonName: {
             $arrayElemAt: ['$titleData.SeriesTitle', 0]
           },
-          SeriesName: {
+          seriesName: {
             $arrayElemAt: ['$packageData.DisplayName', 0]
           },
-          BrandTiCode: {
+          brandTiCode: {
             $arrayElemAt: ['$packageData.BrandTiCode', 0]
           }
         }
