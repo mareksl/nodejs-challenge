@@ -76,21 +76,21 @@ export const upload = {
         })
       }
 
-      if (!uploadData.TICODE || !uploadData.EPISODENO) {
+      if (!uploadData.tiCode || !uploadData.episodeNo) {
         return res.status(400).json({
           error: 'Invalid upload data',
           message: `Upload data for ID: ${databaseId} is missing TICODE or EPISODENO`
         })
       }
 
-      if (!uploadData.SeasonName) {
+      if (!uploadData.seasonName) {
         return res.status(400).json({
           error: 'Invalid upload data',
           message: `Upload data for ID: ${databaseId} is missing SeasonName. Please upload titledata first.`
         })
       }
 
-      if (!uploadData.SeriesName || !uploadData.BrandTiCode) {
+      if (!uploadData.seriesName || !uploadData.brandTiCode) {
         return res.status(400).json({
           error: 'Invalid upload data',
           message: `Upload data for ID: ${databaseId} is missing SeriesName or BrandTiCode. Please upload packages first.`
@@ -183,17 +183,40 @@ export const upload = {
       }
 
       // Get upload data
-      const uploadData = (await uploadCollection.findOne({ id: databaseId })) as any | null
+      const uploadData = (await getUploadData(databaseId, TICODE, EPISODENO))[0]
+
+      console.log(uploadData)
+
       if (!uploadData) {
         return res.status(404).json({
           error: 'Upload not found',
-          message: `No upload found for ID: ${databaseId}`
+          message: `No upload found for ID: ${databaseId}, TICODE: ${TICODE}, EPISODENO: ${EPISODENO}`
         })
       }
 
-      // Check if collection exists
-      const exists = await iconik.collectionExists(TICODE, EPISODENO)
-      if (!exists) {
+      if (!uploadData.tiCode || !uploadData.episodeNo) {
+        return res.status(400).json({
+          error: 'Invalid upload data',
+          message: `Upload data for ID: ${databaseId} is missing TICODE or EPISODENO`
+        })
+      }
+
+      if (!uploadData.seasonName) {
+        return res.status(400).json({
+          error: 'Invalid upload data',
+          message: `Upload data for ID: ${databaseId} is missing SeasonName. Please upload titledata first.`
+        })
+      }
+
+      if (!uploadData.seriesName || !uploadData.brandTiCode) {
+        return res.status(400).json({
+          error: 'Invalid upload data',
+          message: `Upload data for ID: ${databaseId} is missing SeriesName or BrandTiCode. Please upload packages first.`
+        })
+      }
+
+      const collection = await iconik.getCollection(TICODE, EPISODENO)
+      if (!collection) {
         return res.status(400).json({
           error: 'Collection does not exist',
           message: `Collection for ${TICODE}/${EPISODENO} not found. Use /create first.`
@@ -201,18 +224,18 @@ export const upload = {
       }
 
       // Update collection
-      const iconikResult = await iconik.updateCollection(TICODE, EPISODENO, uploadData)
+      const iconikResult = await iconik.updateCollection(TICODE, EPISODENO, collection.id, uploadData)
 
-      // Update database
-      await uploadCollection.updateOne(
-        { id: databaseId },
-        {
-          $set: {
-            'iconikCollection.lastUpdated': new Date(),
-            lastUpdated: new Date()
-          }
-        }
-      )
+      // // Update database
+      // await uploadCollection.updateOne(
+      //   { id: databaseId },
+      //   {
+      //     $set: {
+      //       'iconikCollection.lastUpdated': new Date(),
+      //       lastUpdated: new Date()
+      //     }
+      //   }
+      // )
 
       return res.status(200).json({
         success: true,
