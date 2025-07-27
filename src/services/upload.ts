@@ -3,7 +3,7 @@ import { Request, Response } from 'express'
 import { v4 as uuidv4 } from 'uuid'
 import { iconik } from './iconik'
 import { validation } from './validation'
-import { uploadCollection } from '../utils/mongo-client'
+import { iconikCollections, uploads } from '../utils/mongo-client'
 import { UploadEntry } from '../schema/upload'
 import { getUploadData } from './data'
 
@@ -28,11 +28,10 @@ export const upload = {
         uploadDate: new Date(),
         fileProperties: properties,
         parsedData,
-        status: 'uploaded',
-        iconikCollection: []
+        status: 'uploaded'
       }
 
-      await uploadCollection.insertOne(uploadEntry)
+      await uploads.insertOne(uploadEntry)
 
       // Clean up uploaded file
       fs.unlinkSync(req.file.path)
@@ -108,47 +107,30 @@ export const upload = {
 
       // Create collection
       const iconikResult = await iconik.createCollection(tiCode, episodeNo, uploadData)
-
-      // Update database
       const date = new Date()
-      const { modifiedCount } = await uploadCollection.updateOne(
-        { id: databaseId },
+
+      iconikCollections.updateOne(
+        {
+          tiCode,
+          episodeNo
+        },
         {
           $set: {
-            'iconikCollection.$[entry].iconikId': iconikResult.id,
-            'iconikCollection.$[entry].createdDate': date
+            id: uuidv4(),
+            iconikId: iconikResult.id,
+            createdDate: date,
+            tiCode,
+            episodeNo,
+            episodeName: uploadData.episodeName,
+            seasonName: uploadData.seasonName,
+            seriesName: uploadData.seriesName,
+            brandTiCode: uploadData.brandTiCode
           }
         },
-        { arrayFilters: [{ 'entry.episodeNo': episodeNo }] }
+        {
+          upsert: true
+        }
       )
-
-      if (modifiedCount === 0) {
-        await uploadCollection.updateOne(
-          { id: databaseId },
-          {
-            $push: {
-              iconikCollection: {
-                ticode: tiCode,
-                episodeNo,
-                iconikId: iconikResult.id,
-                createdDate: date
-              }
-            },
-            $set: {
-              lastUpdated: date
-            }
-          }
-        )
-      } else {
-        await uploadCollection.updateOne(
-          { id: databaseId },
-          {
-            $set: {
-              lastUpdated: date
-            }
-          }
-        )
-      }
 
       return res.status(201).json({
         success: true,
@@ -223,16 +205,19 @@ export const upload = {
       const iconikResult = await iconik.updateCollection(tiCode, episodeNo, collection.id, uploadData)
 
       const date = new Date()
-      await uploadCollection.updateOne(
-        { id: databaseId },
+
+      iconikCollections.updateOne(
+        { tiCode, episodeNo },
         {
           $set: {
-            'iconikCollection.$[entry].iconikId': iconikResult.id,
-            'iconikCollection.$[entry].lastUpdated': date,
+            iconikId: iconikResult.id,
+            episodeName: uploadData.episodeName,
+            seasonName: uploadData.seasonName,
+            seriesName: uploadData.seriesName,
+            brandTiCode: uploadData.brandTiCode,
             lastUpdated: date
           }
-        },
-        { arrayFilters: [{ 'entry.episodeNo': episodeNo }] }
+        }
       )
 
       return res.status(200).json({
@@ -290,6 +275,38 @@ export const upload = {
 
       return res.status(400).json({
         error: 'Validation failed',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  },
+
+  async getCollection(req: Request, res: Response): Promise<Response> {
+    const { TICODE: tiCode, EPISODENO: episodeNo } = req.params
+
+    try {
+      const collectionRecord = await iconikCollections.findOne(
+        { tiCode, episodeNo },
+        {
+          projection: { _id: 0 }
+        }
+      )
+
+      if (!collectionRecord) {
+        return res.status(404).json({
+          error: 'Collection not found',
+          message: `No collection found for TICODE: ${tiCode}, EPISODENO: ${episodeNo}`
+        })
+      }
+
+      const iconikCollection = await iconik.getCollection(tiCode, episodeNo)
+
+      return res.status(200).json({
+        ...collectionRecord,
+        iconikCollection
+      })
+    } catch (error) {
+      return res.status(500).json({
+        error: 'Failed to fetch collection',
         message: error instanceof Error ? error.message : 'Unknown error'
       })
     }

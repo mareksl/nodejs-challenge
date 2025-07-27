@@ -1,4 +1,4 @@
-import { uploadCollection } from '../utils/mongo-client'
+import { uploads } from '../utils/mongo-client'
 
 export interface UploadData {
   tiCode: string
@@ -10,7 +10,7 @@ export interface UploadData {
 }
 
 export function getUploadData(id: string, tiCode: string, episodeNo: string) {
-  return uploadCollection
+  return uploads
     .aggregate<UploadData>([
       {
         $match: {
