@@ -1,6 +1,7 @@
 import { Db, MongoClient } from 'mongodb'
 import { MONGO_URI } from '../config/env-vars'
 import { UploadEntry } from '../schema/upload'
+import { IconikCollection } from '../schema/iconik-collection'
 
 console.log('🔌 Attempting to connect to MongoDB...')
 console.log(`📍 MongoDB URI: ${MONGO_URI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')}`) // Hide credentials in logs
@@ -31,8 +32,7 @@ mongoDb.on('error', (error) => {
 
 export { mongoDb, db }
 
-// NOTE: can be deleted, inserted as example
-export const assetCollection = db.collection('assets')
-export const uploadCollection = db.collection<UploadEntry>('uploads')
+export const iconikCollections = db.collection<IconikCollection>('iconik_collections')
+export const uploads = db.collection<UploadEntry>('uploads')
 
-console.log('🗄️  Collections initialized: assets, uploads')
+console.log('🗄️  Collections initialized: iconik_collections, uploads')

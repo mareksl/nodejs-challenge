@@ -18,15 +18,6 @@ export const uploadSchema = object({
   }).required(),
   parsedData: fileSchema,
   status: string().required(),
-  iconikCollection: array(
-    object({
-      ticode: string().required(),
-      episodeNo: string().required(),
-      iconikId: string().required(),
-      createdDate: date().required(),
-      lastUpdated: date().optional()
-    })
-  ),
   lastUpdated: date().optional()
 })
 
