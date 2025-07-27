@@ -284,18 +284,25 @@ export const upload = {
     const { TICODE: tiCode, EPISODENO: episodeNo } = req.params
 
     try {
-      const collection = await iconik.getCollection(tiCode, episodeNo)
+      const collectionRecord = await iconikCollections.findOne(
+        { tiCode, episodeNo },
+        {
+          projection: { _id: 0 }
+        }
+      )
 
-      if (!collection) {
+      if (!collectionRecord) {
         return res.status(404).json({
           error: 'Collection not found',
           message: `No collection found for TICODE: ${tiCode}, EPISODENO: ${episodeNo}`
         })
       }
 
+      const iconikCollection = await iconik.getCollection(tiCode, episodeNo)
+
       return res.status(200).json({
-        success: true,
-        data: collection
+        ...collectionRecord,
+        iconikCollection
       })
     } catch (error) {
       return res.status(500).json({
